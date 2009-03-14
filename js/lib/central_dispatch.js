@@ -10,7 +10,9 @@ var CentralDispatch = function() {
     };
 
     klass.receiveData = function(url, data) {
-        callbacks[url](data);
+        var callback = callbacks[url];
+        if (callback) { callback(data); }
+        callbacks[url] = null;
     };
 
     return klass;
