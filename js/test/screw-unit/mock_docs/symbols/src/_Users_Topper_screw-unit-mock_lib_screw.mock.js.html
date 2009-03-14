@@ -1,0 +1,341 @@
+<html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"> <style>
+	.KEYW {color: #933;}
+	.COMM {color: #bbb; font-style: italic;}
+	.NUMB {color: #393;}
+	.STRN {color: #393;}
+	.REGX {color: #339;}
+	.line {border-right: 1px dotted #666; color: #666; font-style: normal;}
+	</style></head><body><pre><span class='line'>  1</span> <span class="COMM">/** @fileOverview
+<span class='line'>  2</span>       A mocking framework for screw-unit.  Allows you to temporarily mock out
+<span class='line'>  3</span>       functions with objects you are not testing.
+<span class='line'>  4</span> 
+<span class='line'>  5</span>       @author &lt;a href="mailto:topper@toppingdesign.com">Topper Bowers&lt;/a>
+<span class='line'>  6</span> */</span><span class="WHIT">
+<span class='line'>  7</span> 
+<span class='line'>  8</span> </span><span class="COMM">/** Test helper main namespace
+<span class='line'>  9</span>     @namespace
+<span class='line'> 10</span> */</span><span class="WHIT">
+<span class='line'> 11</span> </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">TH</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 12</span>     </span><span class="COMM">/** @namespace */</span><span class="WHIT">
+<span class='line'> 13</span>     </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">publicObj</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 14</span>     
+<span class='line'> 15</span>     </span><span class="COMM">/** used to insert a dom mock for the test being run
+<span class='line'> 16</span>         assumes a &lt;div> with an id of "dom_test" and directory
+<span class='line'> 17</span>         of dom_mocks at the same level as suite.html called "dom_mocks"
+<span class='line'> 18</span>         
+<span class='line'> 19</span>         @param {String} mock the name of the mock to put into the div (you can skip the html)
+<span class='line'> 20</span>         @param {Object} opts takes an optional insert or a specific element (instead of #dom_test)
+<span class='line'> 21</span>         
+<span class='line'> 22</span>         @throws mock must be specified if no mock is specified
+<span class='line'> 23</span>         
+<span class='line'> 24</span>         @example
+<span class='line'> 25</span>           TH.insertDomMock("some_mock"); // will insert dom_mocks/some_mock.html into &lt;div id='#dom_test'>&lt;div>
+<span class='line'> 26</span>           
+<span class='line'> 27</span>         @name TH.insertDomMock
+<span class='line'> 28</span>         @function
+<span class='line'> 29</span>     */</span><span class="WHIT">
+<span class='line'> 30</span>     </span><span class="NAME">publicObj.insertDomMock</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">mock</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">opts</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 31</span>         </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">mock</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 32</span>             </span><span class="KEYW">throw</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">Error</span><span class="PUNC">(</span><span class="STRN">"mock must be specified"</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 33</span>         </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'> 34</span>         </span><span class="NAME">opts</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">opts</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 35</span>         
+<span class='line'> 36</span>         </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">element</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">opts.element</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="NAME">jQuery</span><span class="PUNC">(</span><span class="STRN">"#dom_test"</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 37</span>         
+<span class='line'> 38</span>         </span><span class="NAME">element</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">jQuery</span><span class="PUNC">(</span><span class="NAME">element</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 39</span>         </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="REGX">/\.html$/</span><span class="PUNC">.</span><span class="NAME">test</span><span class="PUNC">(</span><span class="NAME">mock</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 40</span>             </span><span class="NAME">mock</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="PUNC">=</span><span class="WHIT"> </span><span class="STRN">".html"</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 41</span>         </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'> 42</span>         
+<span class='line'> 43</span>         </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">url</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="STRN">"dom_mocks/"</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">mock</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 44</span> 
+<span class='line'> 45</span>         </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">handleResponse</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">html</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 46</span>             </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">opts.insert</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 47</span>                 </span><span class="NAME">element.append</span><span class="PUNC">(</span><span class="NAME">html</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 48</span>             </span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 49</span>                 </span><span class="NAME">element.html</span><span class="PUNC">(</span><span class="NAME">html</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 50</span>             </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'> 51</span>         </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 52</span>         
+<span class='line'> 53</span>         </span><span class="COMM">// use jQuery here so we can mock out Ajax.Request for the tests</span><span class="WHIT">
+<span class='line'> 54</span>         </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">ajx</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">jQuery.ajax</span><span class="PUNC">(</span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 55</span>             </span><span class="NAME">url</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">url</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 56</span>             </span><span class="NAME">async</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 57</span>             </span><span class="NAME">type</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="STRN">'GET'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 58</span>             </span><span class="NAME">success</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">handleResponse</span><span class="WHIT">
+<span class='line'> 59</span>         </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 60</span>     </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 61</span> 
+<span class='line'> 62</span>     </span><span class="COMM">/** simulate a browser click on an element passed to the function
+<span class='line'> 63</span>         @param {DomElement} el The element to receive the click
+<span class='line'> 64</span>         
+<span class='line'> 65</span>         @name TH.click
+<span class='line'> 66</span>         @function
+<span class='line'> 67</span>     */</span><span class="WHIT">
+<span class='line'> 68</span>     </span><span class="NAME">publicObj.click</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">el</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 69</span>         </span><span class="KEYW">if</span><span class="PUNC">(</span><span class="NAME">jQuery.browser.msie</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 70</span>           </span><span class="NAME">el.click</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 71</span>         </span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 72</span>           </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">evt</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">document.createEvent</span><span class="PUNC">(</span><span class="STRN">"MouseEvents"</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 73</span>           </span><span class="NAME">evt.initEvent</span><span class="PUNC">(</span><span class="STRN">"click"</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 74</span>           </span><span class="NAME">el.dispatchEvent</span><span class="PUNC">(</span><span class="NAME">evt</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 75</span>         </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'> 76</span>     </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 77</span>     
+<span class='line'> 78</span>     </span><span class="COMM">/** pause the operation of a page for X miliseconds
+<span class='line'> 79</span>         @param {Number} millis the number of miliseconds to pause
+<span class='line'> 80</span>         @name TH.pause
+<span class='line'> 81</span>         @function
+<span class='line'> 82</span>     */</span><span class="WHIT">
+<span class='line'> 83</span>     </span><span class="NAME">publicObj.pause</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">millis</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 84</span>         </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">date</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">Date</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 85</span>         </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">curDate</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 86</span> 
+<span class='line'> 87</span>         </span><span class="KEYW">do</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="NAME">curDate</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">Date</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'> 88</span>         </span><span class="KEYW">while</span><span class="PUNC">(</span><span class="NAME">curDate</span><span class="PUNC">-</span><span class="NAME">date</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NAME">millis</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 89</span>     </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 90</span> 
+<span class='line'> 91</span>     </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">publicObj</span><span class="PUNC">;</span><span class="WHIT">    
+<span class='line'> 92</span> </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 93</span> 
+<span class='line'> 94</span> </span><span class="COMM">/** Mock out objects using a fairly simple interface.  Also adds some counting functions.
+<span class='line'> 95</span>     @example
+<span class='line'> 96</span>       var someObj = {
+<span class='line'> 97</span>           foo: function () { return 'bar' }
+<span class='line'> 98</span>       };
+<span class='line'> 99</span>       someObj.foo() == 'bar';
+<span class='line'>100</span>       TH.Mock.Obj("someObj", {
+<span class='line'>101</span>           foo: function () { return 'somethingElse' }
+<span class='line'>102</span>       });
+<span class='line'>103</span>       someObj.foo() == 'somethingElse'; // BUT!  Only for this test the next test will have a normal someObj;
+<span class='line'>104</span>       
+<span class='line'>105</span>     @example
+<span class='line'>106</span>       var someObj = {
+<span class='line'>107</span>           foo: function () { return 'bar' }
+<span class='line'>108</span>       };
+<span class='line'>109</span>       someObj.foo() == 'bar';
+<span class='line'>110</span>       TH.Mock.Obj("someObj");
+<span class='line'>111</span>       someObj.countCallsOf("foo");
+<span class='line'>112</span>       someObj.foo() == true;
+<span class='line'>113</span>       someObj.numberOfCallsTo("foo") == 1;
+<span class='line'>114</span>       // using that you can then do cool expectations:  expect(someObj.numberOfCallsTo("foo")).to(equal, 1);
+<span class='line'>115</span> 
+<span class='line'>116</span>     @namespace
+<span class='line'>117</span> */</span><span class="WHIT">
+<span class='line'>118</span> </span><span class="NAME">TH.Mock</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>119</span>     </span><span class="COMM">/** @namespace */</span><span class="WHIT">
+<span class='line'>120</span>     </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">publicObj</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>121</span>     </span><span class="COMM">/** the mocked out objects
+<span class='line'>122</span>         @name TH.Mock.mockedObjects
+<span class='line'>123</span>     */</span><span class="WHIT">
+<span class='line'>124</span>     </span><span class="NAME">publicObj.mockedObjects</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>125</span>     
+<span class='line'>126</span>     </span><span class="COMM">/** taken from prototype - bind a function to a certain object
+<span class='line'>127</span>         @private
+<span class='line'>128</span>     */</span><span class="WHIT">
+<span class='line'>129</span>     </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">bind</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">func</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">obj</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>130</span>         </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">obj</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="NAME">undefined</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">func</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>131</span>         </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">__method</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">func</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">object</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">obj</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>132</span>         </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>133</span>           </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">__method.apply</span><span class="PUNC">(</span><span class="NAME">object</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">jQuery.makeArray</span><span class="PUNC">(</span><span class="NAME">arguments</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>134</span>         </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>135</span>     </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>136</span>     
+<span class='line'>137</span>     </span><span class="COMM">/** taken from prototype - copy one object to another
+<span class='line'>138</span>         @private
+<span class='line'>139</span>     */</span><span class="WHIT">
+<span class='line'>140</span>     </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">extendObject</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">destination</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">source</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>141</span>         </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">property</span><span class="WHIT"> </span><span class="KEYW">in</span><span class="WHIT"> </span><span class="NAME">source</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>142</span>             </span><span class="NAME">destination</span><span class="PUNC">[</span><span class="NAME">property</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">source</span><span class="PUNC">[</span><span class="NAME">property</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>143</span>         </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>144</span>         </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">destination</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>145</span>     </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>146</span>     
+<span class='line'>147</span>     </span><span class="COMM">/** this is used as a constructor to make a new mocked object and cache it
+<span class='line'>148</span>         @private
+<span class='line'>149</span>         @constructs
+<span class='line'>150</span>     */</span><span class="WHIT">
+<span class='line'>151</span>     </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">MockedObject</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">props</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>152</span>         </span><span class="NAME">extendObject</span><span class="PUNC">(</span><span class="KEYW">this</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">props</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>153</span>         </span><span class="NAME">this.countCallsCache</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>154</span>     </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>155</span>     
+<span class='line'>156</span>     </span><span class="COMM">/** Adds the countCallsOf and numberOfCallsTo methods to any object that
+<span class='line'>157</span>         is getting mocked
+<span class='line'>158</span>         @private
+<span class='line'>159</span>     */</span><span class="WHIT">
+<span class='line'>160</span>     </span><span class="NAME">MockedObject.prototype</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>161</span>         </span><span class="NAME">countCallsOf</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">propString</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>162</span>             </span><span class="NAME">this.countCallsCache</span><span class="PUNC">[</span><span class="NAME">propString</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>163</span>             </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">prop</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.countCallsCache</span><span class="PUNC">[</span><span class="NAME">propString</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>164</span>             </span><span class="NAME">prop.count</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>165</span>             </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="NAME">propString</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">bind</span><span class="PUNC">(</span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>166</span>                 </span><span class="NAME">this.countCallsCache</span><span class="PUNC">[</span><span class="NAME">propString</span><span class="PUNC">]</span><span class="PUNC">.</span><span class="NAME">count</span><span class="PUNC">++</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>167</span>             </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">this</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">         
+<span class='line'>168</span>         </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>169</span>         </span><span class="NAME">numberOfCallsTo</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">propString</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>170</span>             </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.countCallsCache</span><span class="PUNC">[</span><span class="NAME">propString</span><span class="PUNC">]</span><span class="PUNC">.</span><span class="NAME">count</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>171</span>         </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>172</span>         
+<span class='line'>173</span>     </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>174</span>     
+<span class='line'>175</span>     </span><span class="COMM">/** main mocking interface
+<span class='line'>176</span>         
+<span class='line'>177</span>         @param {String} mockString the string representation of the object you are trying to mock
+<span class='line'>178</span>         @param {Object} newObj (optional) functions you want to mock on the other object
+<span class='line'>179</span>     
+<span class='line'>180</span>         @throws if the mockString does not eval into an object
+<span class='line'>181</span>     
+<span class='line'>182</span>         @see TH.Mock
+<span class='line'>183</span>         @name TH.Mock.obj
+<span class='line'>184</span>         @function
+<span class='line'>185</span>     */</span><span class="WHIT">
+<span class='line'>186</span>     </span><span class="NAME">publicObj.obj</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">mockString</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">newObj</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>187</span>         </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">oldObj</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">eval</span><span class="PUNC">(</span><span class="NAME">mockString</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>188</span>         </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">obj</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>189</span>         </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="PUNC">(</span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">oldObj</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="STRN">"object"</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>190</span>             </span><span class="KEYW">throw</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">Error</span><span class="PUNC">(</span><span class="STRN">"TH.Mock.obj called on a string that doesn't evaluate into an object"</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>191</span>         </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>192</span>         </span><span class="NAME">obj</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">MockedObject</span><span class="PUNC">(</span><span class="NAME">oldObj</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>193</span>         </span><span class="NAME">extendObject</span><span class="PUNC">(</span><span class="NAME">obj</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">newObj</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>194</span>         
+<span class='line'>195</span>         </span><span class="NAME">publicObj.mockedObjects</span><span class="PUNC">[</span><span class="NAME">mockString</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>196</span>         </span><span class="NAME">publicObj.mockedObjects</span><span class="PUNC">[</span><span class="NAME">mockString</span><span class="PUNC">]</span><span class="PUNC">.</span><span class="NAME">newObj</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">obj</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>197</span>         </span><span class="NAME">publicObj.mockedObjects</span><span class="PUNC">[</span><span class="NAME">mockString</span><span class="PUNC">]</span><span class="PUNC">.</span><span class="NAME">oldObj</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">oldObj</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>198</span>         
+<span class='line'>199</span>         </span><span class="NAME">eval</span><span class="PUNC">(</span><span class="NAME">mockString</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">" = TH.Mock.mockedObjects['"</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">mockString</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">"'].newObj"</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>200</span>         
+<span class='line'>201</span>         </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">obj</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>202</span>     </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>203</span>     
+<span class='line'>204</span>     </span><span class="COMM">/** Used in a before() to reset all the objects that have been mocked to their original splendor
+<span class='line'>205</span>         @name TH.Mock.reset
+<span class='line'>206</span>         @function
+<span class='line'>207</span>     */</span><span class="WHIT">
+<span class='line'>208</span>     </span><span class="NAME">publicObj.reset</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>209</span>         </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">m</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>210</span>         </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">obj</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>211</span>         </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">mockString</span><span class="WHIT"> </span><span class="KEYW">in</span><span class="WHIT"> </span><span class="NAME">publicObj.mockedObjects</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>212</span>             </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">publicObj.mockedObjects.hasOwnProperty</span><span class="PUNC">(</span><span class="NAME">mockString</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>213</span>                 </span><span class="NAME">eval</span><span class="PUNC">(</span><span class="NAME">mockString</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">" = TH.Mock.mockedObjects['"</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">mockString</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">"'].oldObj"</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>214</span>             </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>215</span>         </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>216</span>         </span><span class="NAME">publicObj.mockedObjects</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>217</span>     </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>218</span>     
+<span class='line'>219</span>     </span><span class="COMM">/** this will let you call TH.Mock.numberOfCallsTo("name", "prop") - for convenience
+<span class='line'>220</span>         @name TH.Mock.numberOfCallsTo
+<span class='line'>221</span>         @function
+<span class='line'>222</span>     */</span><span class="WHIT">
+<span class='line'>223</span>     </span><span class="NAME">publicObj.numberOfCallsTo</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">mockString</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">propString</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>224</span>         </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">obj</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">eval</span><span class="PUNC">(</span><span class="NAME">mockString</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>225</span>         </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">obj.numberOfCallsTo</span><span class="PUNC">(</span><span class="NAME">propString</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>226</span>     </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>227</span> 
+<span class='line'>228</span>     </span><span class="COMM">// for dev</span><span class="WHIT">
+<span class='line'>229</span>     </span><span class="NAME">publicObj.dirMocks</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>230</span>         </span><span class="NAME">console.dir</span><span class="PUNC">(</span><span class="NAME">mockCache</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>231</span>     </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>232</span>     
+<span class='line'>233</span>     </span><span class="NAME">publicObj.dirCountCalls</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>234</span>         </span><span class="NAME">console.dir</span><span class="PUNC">(</span><span class="NAME">countCallsCache</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>235</span>     </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>236</span>     
+<span class='line'>237</span>     </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">publicObj</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>238</span> </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>239</span> 
+<span class='line'>240</span> </span><span class="COMM">/** This mocks out Prototype's ajax calls so that you don't need a server in your tests
+<span class='line'>241</span>     @example
+<span class='line'>242</span>       TH.Ajax.mock("/a_url", "someText", 200);
+<span class='line'>243</span>       var ajx = new Ajax.Request("/a_url", {
+<span class='line'>244</span>           onComplete: function (resp) { response = resp }
+<span class='line'>245</span>       });
+<span class='line'>246</span>       expect(response.responseText).to(equal, "someText");
+<span class='line'>247</span>       
+<span class='line'>248</span>     @namespace
+<span class='line'>249</span> */</span><span class="WHIT">
+<span class='line'>250</span> </span><span class="NAME">TH.Ajax</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>251</span>     </span><span class="COMM">/** @namespace */</span><span class="WHIT">
+<span class='line'>252</span>     </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">publicObj</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>253</span>     
+<span class='line'>254</span>     </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">mockAjaxHash</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>255</span>     
+<span class='line'>256</span>     </span><span class="COMM">/** Lets you count the number of requests on a certain URL
+<span class='line'>257</span>         @example
+<span class='line'>258</span>           TH.Ajax.mock("/a_url", "someText", 200);
+<span class='line'>259</span>            var ajx = new Ajax.Request("/a_url", {
+<span class='line'>260</span>                onComplete: function (resp) { response = resp }
+<span class='line'>261</span>            });
+<span class='line'>262</span>            expect(TH.Ajax.requestCont["/a_url"]).to(equal, 1);
+<span class='line'>263</span>     
+<span class='line'>264</span>         @name TH.Ajax.requestCount
+<span class='line'>265</span>     */</span><span class="WHIT">
+<span class='line'>266</span>     </span><span class="NAME">publicObj.requestCount</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>267</span>     
+<span class='line'>268</span>     </span><span class="COMM">/** Reset the request count - used in a before()
+<span class='line'>269</span>         @name TH.Ajax.reset
+<span class='line'>270</span>         @function
+<span class='line'>271</span>     */</span><span class="WHIT">
+<span class='line'>272</span>     </span><span class="NAME">publicObj.reset</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>273</span>         </span><span class="NAME">publicObj.requestCount</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>274</span>     </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>275</span>     
+<span class='line'>276</span>     </span><span class="COMM">/** this is the main mocking interface
+<span class='line'>277</span>         @param {String} urlToMock the url that you want to respond with your response
+<span class='line'>278</span>         @param {String} response the text you want the server to send back. Text will try to be
+<span class='line'>279</span>           evaled into JSON so that responseJSON can be set.
+<span class='line'>280</span>         @param {Number} status (optional) the response code you want the server to send
+<span class='line'>281</span>         
+<span class='line'>282</span>         @example
+<span class='line'>283</span>           TH.Ajax.mock("/a_url", "someText", 200);
+<span class='line'>284</span>           var ajx = new Ajax.Request("/a_url", {
+<span class='line'>285</span>               onComplete: function (resp) { response = resp }
+<span class='line'>286</span>           });
+<span class='line'>287</span>           expect(response.responseText).to(equal, "someText");
+<span class='line'>288</span>         
+<span class='line'>289</span>         @name TH.Ajax.mock
+<span class='line'>290</span>         @function
+<span class='line'>291</span>     */</span><span class="WHIT">
+<span class='line'>292</span>     </span><span class="NAME">publicObj.mock</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">urlToMock</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">response</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">status</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>293</span>         </span><span class="NAME">status</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">status</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="NUMB">200</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>294</span>         </span><span class="NAME">mockAjaxHash</span><span class="PUNC">[</span><span class="NAME">urlToMock</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="NAME">response</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">response</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">status</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">status</span><span class="WHIT"> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>295</span>         
+<span class='line'>296</span>         </span><span class="NAME">Ajax</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>297</span>         </span><span class="NAME">Ajax.Request</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">url</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">opts</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>298</span>             </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">mockAjaxHash.hasOwnProperty</span><span class="PUNC">(</span><span class="NAME">url</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>299</span>                 </span><span class="KEYW">throw</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">Error</span><span class="PUNC">(</span><span class="STRN">"ajax request called with: "</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">url</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">" but no mock was found"</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>300</span>             </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>301</span>             
+<span class='line'>302</span>             </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">publicObj.requestCount</span><span class="PUNC">[</span><span class="NAME">url</span><span class="PUNC">]</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>303</span>                 </span><span class="NAME">publicObj.requestCount</span><span class="PUNC">[</span><span class="NAME">url</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>304</span>             </span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>305</span>                 </span><span class="NAME">publicObj.requestCount</span><span class="PUNC">[</span><span class="NAME">url</span><span class="PUNC">]</span><span class="PUNC">++</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>306</span>             </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>307</span>             
+<span class='line'>308</span>             </span><span class="KEYW">if</span><span class="PUNC">(</span><span class="NAME">opts.onComplete</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="NAME">opts.onSuccess</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="NAME">opts.onFailure</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>309</span>                 </span><span class="NAME">response</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>310</span>                 </span><span class="NAME">response.responseText</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">mockAjaxHash</span><span class="PUNC">[</span><span class="NAME">url</span><span class="PUNC">]</span><span class="PUNC">.</span><span class="NAME">response</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>311</span>                 </span><span class="NAME">response.status</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">mockAjaxHash</span><span class="PUNC">[</span><span class="NAME">url</span><span class="PUNC">]</span><span class="PUNC">.</span><span class="NAME">status</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>312</span>                 </span><span class="KEYW">try</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>313</span>                     </span><span class="NAME">response.responseJSON</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">response.responseText.evalJSON</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>314</span>                 </span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">catch</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">e</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>315</span>                     </span><span class="NAME">response.responseJSON</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>316</span>                 </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>317</span>                 
+<span class='line'>318</span>                 </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">(</span><span class="NAME">response.status</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="NUMB">200</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="NAME">opts.onSuccess</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>319</span>                     </span><span class="NAME">opts.onSuccess</span><span class="PUNC">(</span><span class="NAME">response</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>320</span>                 </span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">                    
+<span class='line'>321</span>                     </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">opts.onFailure</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>322</span>                         </span><span class="NAME">opts.onFailure</span><span class="PUNC">(</span><span class="NAME">response</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>323</span>                     </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>324</span>                 </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>325</span>                 </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">opts.onComplete</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>326</span>                     </span><span class="NAME">opts.onComplete</span><span class="PUNC">(</span><span class="NAME">response</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>327</span>                 </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>328</span>             </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>329</span>         </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>330</span>     </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>331</span>     
+<span class='line'>332</span>     </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">publicObj</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>333</span> </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>334</span> </span></pre></body></html>
