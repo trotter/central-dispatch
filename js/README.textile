@@ -1,0 +1,8 @@
+h1. Central Dispatch
+
+Central Dispatch is a totally awesome replacement for JSONP. It allows for
+caching of JSON data and relies on a central dispatch handler on the client side
+to ensure the correct callback function receives the correct data. Right now
+it's terribly incomplete, but you can see the specs to get an idea of where it's
+heading. kthx
+
