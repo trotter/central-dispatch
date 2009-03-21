@@ -12,6 +12,7 @@ Screw.Unit(function() {
             var callback, requestedUrl, storedData;
 
             before(function() {
+                storedData = null;
                 callback = function(data) { storedData = data; };
                 requestedUrl = 'http://test.host/test.js';
                 CentralDispatch.requestData(requestedUrl, callback);
@@ -34,17 +35,34 @@ Screw.Unit(function() {
             });
 
             it('should callback when receiving data for test.host/test.js', function() {
-                pending();
+                var url = 'test.host/test.js';
+                var data = {hello: 'bob'};
+                CentralDispatch.receiveData(url, data);
+                expect(storedData).to(equal, data);
             });
 
             it('should callback when receiving data for test.js', function() {
-                pending();
+                var url = 'test.js';
+                var data = {hello: 'bob'};
+                CentralDispatch.receiveData(url, data);
+                expect(storedData).to(equal, data);
             });
         });
 
         describe('registered twice to receive data from the same place', function() {
+            var callback, requestedUrl, storedData;
+
+            before(function() {
+                storedData = 0;
+                callback = function(data) { storedData += 1; };
+                requestedUrl = 'http://test.host/test.js';
+                CentralDispatch.requestData(requestedUrl, callback);
+                CentralDispatch.requestData(requestedUrl, callback);
+            });
+
             it('should call the callback twice', function() {
-                pending();
+                CentralDispatch.receiveData(requestedUrl, null);
+                expect(storedData).to(equal, 2);
             });
         });
 
@@ -62,6 +80,10 @@ Screw.Unit(function() {
             it('should not receive data after the timeout', function() {
                 pending();
             });
+        });
+
+        describe('registered to receive an error callback', function() {
+            // TODO: Handle onerror on script tag
         });
     });
 });
