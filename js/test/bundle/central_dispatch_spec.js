@@ -67,8 +67,19 @@ Screw.Unit(function() {
         });
 
         describe('registered to receive data from two different places', function() {
+            before(function() {
+                storedData = null;
+                goodCallback = function(data) { storedData = 'good'; };
+                badCallback = function(data) { storedData = 'bad'; };
+                goodUrl = 'http://test.host/test.js';
+                badUrl = 'http://good.host/test.js';
+                CentralDispatch.requestData(goodUrl, goodCallback);
+                CentralDispatch.requestData(badUrl, badCallback);
+            });
+
             it('should call the correct callback', function() {
-                pending();
+                CentralDispatch.receiveData(goodUrl, 'data');
+                expect(storedData).to(equal, 'good');
             });
         });
 
