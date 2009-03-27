@@ -34,11 +34,28 @@ var CentralDispatch = function() {
         }
     };
 
-    klass.requestData = function(url, callback) {
-        addCallback(url, callback);
+    klass.requestData = function(url, callback, options) {
+        options = options || {};
         var tag = document.createElement('script');
         tag.src = url;
+        tag.onerror = function () { 
+            if (options.onError) {
+                options.onError();
+            }
+            if (tag) {
+                document.body.removeChild(tag);
+                tag = null;
+            }
+        }
+        addCallback(url, function (data) { 
+            callback(data); 
+            if (tag) {
+                document.body.removeChild(tag); 
+                tag = null; 
+            }
+        });
         document.body.appendChild(tag);
+        return tag;
     };
 
     klass.receiveData = function(url, data) {

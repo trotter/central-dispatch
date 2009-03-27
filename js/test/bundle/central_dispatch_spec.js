@@ -9,13 +9,13 @@ Screw.Unit(function() {
         });
 
         describe('registered to receive data from http://test.host/test.js', function() {
-            var callback, requestedUrl, storedData;
+            var callback, requestedUrl, storedData, element;
 
             before(function() {
                 storedData = null;
                 callback = function(data) { storedData = data; };
                 requestedUrl = 'http://test.host/test.js';
-                CentralDispatch.requestData(requestedUrl, callback);
+                element = CentralDispatch.requestData(requestedUrl, callback);
             });
 
             it('should callback when receiving data for http://test.host/test.js', function() {
@@ -32,6 +32,11 @@ Screw.Unit(function() {
                 CentralDispatch.receiveData(url, data);
                 CentralDispatch.receiveData(url, data2);
                 expect(storedData).to(equal, data);
+            });
+
+            it('should garbage collect the script tag', function() {
+                CentralDispatch.receiveData(requestedUrl, null);
+                expect(document.body.childNodes).to_not(include, element);
             });
 
             it('should callback when receiving data for test.host/test.js', function() {
@@ -67,6 +72,8 @@ Screw.Unit(function() {
         });
 
         describe('registered to receive data from two different places', function() {
+            var storedData, goodCallback, badCallback, goodUrl, badUrl;
+
             before(function() {
                 storedData = null;
                 goodCallback = function(data) { storedData = 'good'; };
@@ -83,18 +90,26 @@ Screw.Unit(function() {
             });
         });
 
-        describe('registered to receive data with a timeout', function() {
-            it('should receive data before the timeout', function() {
-                pending();
-            });
-
-            it('should not receive data after the timeout', function() {
-                pending();
-            });
-        });
-
         describe('registered to receive an error callback', function() {
-            // TODO: Handle onerror on script tag
+            var errorCallback, requestedUrl, storedData, callback, element;
+
+            before(function() {
+                storedData = null;
+                callback = function(data) { storedData = data; };
+                errorCallback = function(error) { storedData = 'error'; };
+                requestedUrl = 'http://test.host/test.js';
+                element = CentralDispatch.requestData(requestedUrl, callback, { onError: errorCallback });
+            });
+
+            it('should call the error callback', function() {
+                element.onerror();
+                expect(storedData).to(equal, 'error');
+            });
+
+            it('should garbage collect', function() {
+                element.onerror();
+                expect(document.body.childNodes).to_not(include, element);
+            });
         });
     });
 });
