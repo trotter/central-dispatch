@@ -1,30 +1,33 @@
-var CentralDispatch = function() {
-    var klass = {};
-    var callbacks = {};
+var CentralDispatch = function () {
+    var klass = {},
+        callbacks = {},
+        addCallback, findCallbacks, runCallbacks;
 
-    var addCallback = function(url, callback) {
+    addCallback = function (url, callback) {
         callbacks[url] = callbacks[url] || [];
         callbacks[url].push(callback);
     };
 
-    var findCallbacks = function(url) {
+    findCallbacks = function (url) {
+        var callback, regex, fullUrl;
+
         // Exit with an exact match if possible for speed
-        var callback = callbacks[url];
+        callback = callbacks[url];
         if (callback) {
-          return callback;
+            return callback;
         }
         // TODO: The following is innefficient in the case of many callbacks
-        var regex = new RegExp(url + '$');
-        for (var fullUrl in callbacks) {
-          if (callbacks.hasOwnProperty(fullUrl)) {
-            if (regex.test(fullUrl)) {
-              return callbacks[fullUrl];
+        regex = new RegExp(url + '$');
+        for (fullUrl in callbacks) {
+            if (callbacks.hasOwnProperty(fullUrl)) {
+                if (regex.test(fullUrl)) {
+                    return callbacks[fullUrl];
+                }
             }
-          }
         }
     };
 
-    var runCallbacks = function(callbacks, data) {
+    runCallbacks = function (callbacks, data) {
         var callback = callbacks.pop();
         while (callback) {
             // TODO: Should clone data so that functions don't spoil the fun for
@@ -34,9 +37,10 @@ var CentralDispatch = function() {
         }
     };
 
-    klass.requestData = function(url, callback, options) {
+    klass.requestData = function (url, callback, options) {
+        var tag;
         options = options || {};
-        var tag = document.createElement('script');
+        tag = document.createElement('script');
         tag.src = url;
         tag.onerror = function () { 
             if (options.onError) {
@@ -46,7 +50,7 @@ var CentralDispatch = function() {
                 document.body.removeChild(tag);
                 tag = null;
             }
-        }
+        };
         addCallback(url, function (data) { 
             callback(data); 
             if (tag) {
@@ -58,11 +62,11 @@ var CentralDispatch = function() {
         return tag;
     };
 
-    klass.receiveData = function(url, data) {
+    klass.receiveData = function (url, data) {
         var callbacks = findCallbacks(url);
         runCallbacks(callbacks, data);
         if (callbacks) { 
-          callbacks[url] = null;
+            callbacks[url] = null;
         }
     };
 
