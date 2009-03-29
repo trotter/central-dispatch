@@ -1,8 +1,51 @@
-h1. Central Dispatch
+h1. CentralDispatch
 
-Central Dispatch is a totally awesome replacement for JSONP. It allows for
-caching of JSON data and relies on a central dispatch handler on the client side
-to ensure the correct callback function receives the correct data. Right now
-it's terribly incomplete, but you can see the specs to get an idea of where it's
-heading. kthx
+CentralDispatch is a totally awesome replacement for JSONP. It pushes the
+callback matching work to the client, but allows for server side caching of JSON
+data. This is a huge benefit if you're aggressively caching your application.
+
+h1. Client Side Usage
+
+h2. CentralDispatch.requestData(url, callback, options)
+
+h3. Parameters
+
+| param | expected type | description |
+| url | String | The url from which you're fetching data |
+| callback | Function | A function that will be called when the data is received |
+| options | Optional Hash | Described below |
+
+Options Hash:
+| key | expected type | description |
+| onError | Function | A function to be called if there is an error fetching the data |
+
+h3. Example
+
+<code class="javascript">
+var callback = function (data) {
+    alert(data);
+};
+CentralDispatch.requestData('http://trottercashion.com/examples/cdData.js', callback)
+</code>
+
+h1. Server Side Usage
+
+On the server, all JSON data must be wrapped in CentralDispatch.receiveData,
+which is described below.
+
+h2. CentralDispatch.receiveData(version, url, data)
+
+h3. Parameters
+
+| param | expected type | description |
+| version | String | The version of CentralDispatch.receiveData you're using, currently only v1 |
+| url | String | The url where the data resides, can be a path fragment |
+| data | JSON | The JSON data |
+
+h3. Examples
+
+<code class="javascript">
+CentralDispatch.receiveData('v1', 'http://trottercashion.com/examples/cdData.js', {foo: bar});
+CentralDispatch.receiveData('v1', 'examples/cdData.js', {foo: 'bar'});
+</code>
 
