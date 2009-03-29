@@ -21,12 +21,14 @@ Options Hash:
 
 h3. Example
 
+<pre>
 <code class="javascript">
 var callback = function (data) {
     alert(data);
 };
 CentralDispatch.requestData('http://trottercashion.com/examples/cdData.js', callback)
 </code>
+</pre>
 
 h1. Server Side Usage
 
@@ -44,8 +46,10 @@ h3. Parameters
 
 h3. Examples
 
+<pre>
 <code class="javascript">
 CentralDispatch.receiveData('v1', 'http://trottercashion.com/examples/cdData.js', {foo: bar});
 CentralDispatch.receiveData('v1', 'examples/cdData.js', {foo: 'bar'});
 </code>
+</pre>
 
