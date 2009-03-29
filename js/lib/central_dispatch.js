@@ -62,7 +62,7 @@ var CentralDispatch = function () {
         return tag;
     };
 
-    klass.receiveData = function (url, data) {
+    klass.receiveData = function (version, url, data) {
         var callbacks = findCallbacks(url);
         runCallbacks(callbacks, data);
         if (callbacks) { 

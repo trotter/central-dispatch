@@ -21,7 +21,7 @@ Screw.Unit(function() {
             it('should callback when receiving data for http://test.host/test.js', function() {
                 var url = 'http://test.host/test.js';
                 var data = {hello: 'bob'};
-                CentralDispatch.receiveData(url, data);
+                CentralDispatch.receiveData('v1', url, data);
                 expect(storedData).to(equal, data);
             });
 
@@ -29,27 +29,27 @@ Screw.Unit(function() {
                 var url = 'http://test.host/test.js';
                 var data = {hello: 'bob'};
                 var data2 = {time: 'to eat'};
-                CentralDispatch.receiveData(url, data);
-                CentralDispatch.receiveData(url, data2);
+                CentralDispatch.receiveData('v1', url, data);
+                CentralDispatch.receiveData('v1', url, data2);
                 expect(storedData).to(equal, data);
             });
 
             it('should garbage collect the script tag', function() {
-                CentralDispatch.receiveData(requestedUrl, null);
+                CentralDispatch.receiveData('v1', requestedUrl, null);
                 expect(document.body.childNodes).to_not(include, element);
             });
 
             it('should callback when receiving data for test.host/test.js', function() {
                 var url = 'test.host/test.js';
                 var data = {hello: 'bob'};
-                CentralDispatch.receiveData(url, data);
+                CentralDispatch.receiveData('v1', url, data);
                 expect(storedData).to(equal, data);
             });
 
             it('should callback when receiving data for test.js', function() {
                 var url = 'test.js';
                 var data = {hello: 'bob'};
-                CentralDispatch.receiveData(url, data);
+                CentralDispatch.receiveData('v1', url, data);
                 expect(storedData).to(equal, data);
             });
         });
@@ -66,7 +66,7 @@ Screw.Unit(function() {
             });
 
             it('should call the callback twice', function() {
-                CentralDispatch.receiveData(requestedUrl, null);
+                CentralDispatch.receiveData('v1', requestedUrl, null);
                 expect(storedData).to(equal, 2);
             });
         });
@@ -85,7 +85,7 @@ Screw.Unit(function() {
             });
 
             it('should call the correct callback', function() {
-                CentralDispatch.receiveData(goodUrl, 'data');
+                CentralDispatch.receiveData('v1', goodUrl, 'data');
                 expect(storedData).to(equal, 'good');
             });
         });
