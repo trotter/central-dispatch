@@ -25,6 +25,8 @@ var CentralDispatch = function () {
                 }
             }
         }
+        // Incase we don't find anything
+        return [];
     };
 
     runCallbacks = function (callbacks, data) {

@@ -129,5 +129,17 @@ Screw.Unit(function () {
                 expect(document.body.childNodes).to_not(include, element);
             });
         });
+
+        describe('not registered to receive data', function () {
+            it('should silently ignore incoming data', function () {
+                CentralDispatch.receiveData('v1', 'nonexistant/url', 'data');
+            });
+        });
+
+        describe('registered to receive a timeout callback', function () {
+
+            before(function () {
+            });
+        });
     });
 });
