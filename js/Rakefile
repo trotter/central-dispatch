@@ -1,0 +1,13 @@
+require 'rubygems'
+require 'rake'
+
+desc "run jslint"
+task :jslint do
+  files = Rake::FileList.new("lib/*.js", "test/bundle/*.js", 
+                             "test/fixtures.js", "test/spec_helper.js")
+  files.each do |f| 
+    puts f
+    puts `java org.mozilla.javascript.tools.shell.Main ~/bin/jslint.js #{f}`
+  end
+end
+

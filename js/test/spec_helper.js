@@ -1,7 +1,8 @@
+/*extern Screw, $ */
 Screw.Matchers.include = {
     match: function (expected, actual) {
         var i;
-        for (i = 0; i < actual.length; i++) {
+        for (i = 0; i < actual.length; i += 1) {
             if (actual[i] === expected) { 
                 return true;
             }
@@ -13,4 +14,4 @@ Screw.Matchers.include = {
         var ending = (not ? ' to not include ' : ' to include ') + $.print(actual);
         return 'expected ' + $.print(actual) + ending;
     }
-}
+};
