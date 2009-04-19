@@ -1,7 +1,41 @@
 var CentralDispatch = function () {
     var klass = {},
         callbacks = {},
-        addCallback, findCallbacks, runCallbacks;
+        addCallback, findCallbacks, runCallbacks,
+        Request;
+
+    Request = function (url, callback, options) {
+        var self = {}, tag, executed = false;
+        options = options || {};
+
+        addCallback(url, function (data) { 
+            callback(data); 
+            if (tag && !executed) {
+                document.body.removeChild(tag); 
+                tag = null; 
+            }
+            executed = true;
+        });
+
+        self.url = url;
+        
+        self.tag = function () {
+            tag = document.createElement('script');
+            tag.src = url;
+            tag.onerror = function () { 
+                if (options.onError) {
+                    options.onError();
+                }
+                if (tag && !executed) {
+                    document.body.removeChild(tag);
+                    tag = null;
+                }
+                executed = true;
+            };
+            return tag;
+        }();
+        return self;
+    };
 
     addCallback = function (url, callback) {
         callbacks[url] = callbacks[url] || [];
@@ -40,28 +74,10 @@ var CentralDispatch = function () {
     };
 
     klass.requestData = function (url, callback, options) {
-        var tag;
-        options = options || {};
-        tag = document.createElement('script');
-        tag.src = url;
-        tag.onerror = function () { 
-            if (options.onError) {
-                options.onError();
-            }
-            if (tag) {
-                document.body.removeChild(tag);
-                tag = null;
-            }
-        };
-        addCallback(url, function (data) { 
-            callback(data); 
-            if (tag) {
-                document.body.removeChild(tag); 
-                tag = null; 
-            }
-        });
-        document.body.appendChild(tag);
-        return tag;
+        var tag, thing;
+        thing = Request(url, callback, options);
+        document.body.appendChild(thing.tag);
+        return thing.tag;
     };
 
     klass.receiveData = function (version, url, data) {
