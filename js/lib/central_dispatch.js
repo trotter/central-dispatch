@@ -47,43 +47,45 @@ CentralDispatch.request = function (spec, private) {
         public.element = element;
     };
 
-    public.success = function (data) { 
+    private.process = function(func) {
         if (!private.executed) {
-            private.callbacks.onSuccess(data); 
-            if (public.element) {
-                document.body.removeChild(public.element); 
-                public.element = null; 
-            }
+            func();
+            private.cleanupElement();
+            private.executed = true;
         }
-        private.executed = true;
+    }
+
+    private.cleanupElement = function () {
+        if (public.element) {
+            document.body.removeChild(public.element); 
+            public.element = null; 
+        };
+    };
+
+    public.success = function (data) { 
+        private.process(function () {
+            if (private.callbacks.onSuccess) {
+                private.callbacks.onSuccess(data); 
+            }
+        });
     };
 
     public.error = function (msg, url, line) {
-        if (!private.executed) {
+        private.process(function () {
             if (private.callbacks.onError) {
                 private.callbacks.onError(msg, url, line);
             }
-            if (public.element) {
-                document.body.removeChild(public.element);
-                CentralDispatch.RequestMap.remove(public);
-                public.element = null;
-            }
-        }
-        private.executed = true;
+            CentralDispatch.RequestMap.remove(public);
+        });
     };
 
     public.timeout = function () {
-        if (!private.executed) {
+        private.process(function () {
             if (private.callbacks.onTimeout) {
                 private.callbacks.onTimeout(public);
             }
-            if (public.element) {
-                document.body.removeChild(public.element);
-            }
             CentralDispatch.RequestMap.remove(public);
-            public.element = null;
-            private.executed = true;
-        }
+        });
     };
 
     public.addToDom = function () {
