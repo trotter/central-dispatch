@@ -82,8 +82,8 @@ CentralDispatch.request = function (spec, my) {
     that.error = function (msg, url, line) {
         my.process(function () {
             CentralDispatch.RequestMap.remove(that);
-            my.cleanupTimeout();
             if (my.callbacks.onError) {
+                my.cleanupTimeout();
                 my.callbacks.onError(msg, url, line);
             }
         });
