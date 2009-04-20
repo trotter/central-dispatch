@@ -17,12 +17,13 @@ var CentralDispatch = function () {
 }();
 
 CentralDispatch.request = function (spec, private) {
-    var public, url;
+    var public;
     public = {};
     public.url = spec.url;
 
     private = private || {};
 
+    // Private methods
     private.setCallbacks = function () {
         if (typeof(spec.callbacks) === 'function') {
             private.callbacks = { onSuccess: spec.callbacks };
@@ -47,21 +48,22 @@ CentralDispatch.request = function (spec, private) {
         public.element = element;
     };
 
-    private.process = function(func) {
+    private.process = function (func) {
         if (!private.executed) {
             func();
             private.cleanupElement();
             private.executed = true;
         }
-    }
+    };
 
     private.cleanupElement = function () {
         if (public.element) {
             document.body.removeChild(public.element); 
             public.element = null; 
-        };
+        }
     };
 
+    // Public methods
     public.success = function (data) { 
         private.process(function () {
             if (private.callbacks.onSuccess) {
