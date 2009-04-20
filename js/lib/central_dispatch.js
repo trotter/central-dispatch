@@ -19,7 +19,7 @@ var CentralDispatch = function () {
 }();
 
 CentralDispatch.request = function (spec, private) {
-    var public, init, url, callback, element, executed = false,
+    var public, init, url, callback, executed = false,
         onSuccess, onError, onTimeout;
     url = spec.url;
     callback = spec.callback;
@@ -45,6 +45,7 @@ CentralDispatch.request = function (spec, private) {
     };
 
     private.setElement = function () {
+        var element;
         element = document.createElement('script');
         element.src = url;
         element.onerror = public.error;
@@ -57,9 +58,9 @@ CentralDispatch.request = function (spec, private) {
     public.success = function (data) { 
         if (!executed) {
             onSuccess(data); 
-            if (element) {
+            if (public.element) {
                 document.body.removeChild(public.element); 
-                element = null; 
+                public.element = null; 
             }
         }
         executed = true;
@@ -70,10 +71,10 @@ CentralDispatch.request = function (spec, private) {
             if (onError) {
                 onError(msg, url, line);
             }
-            if (element) {
-                document.body.removeChild(element);
+            if (public.element) {
+                document.body.removeChild(public.element);
                 CentralDispatch.RequestMap.remove(public);
-                element = null;
+                public.element = null;
             }
         }
         executed = true;
@@ -84,18 +85,18 @@ CentralDispatch.request = function (spec, private) {
             if (onTimeout) {
                 onTimeout(public);
             }
-            if (element) {
-                document.body.removeChild(element);
+            if (public.element) {
+                document.body.removeChild(public.element);
             }
             CentralDispatch.RequestMap.remove(public);
-            element = null;
+            public.element = null;
             executed = true;
         }
     };
 
 
     public.addToDom = function () {
-        document.body.appendChild(element);
+        document.body.appendChild(public.element);
     };
 
     // Init
