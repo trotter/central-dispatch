@@ -6,38 +6,62 @@ var CentralDispatch = function () {
 
     makeRequest = function (url, callback) {
         var self = {}, element, executed = false,
-            onSuccess, onError;
+            onSuccess, onError, onTimeout;
 
         if (typeof(callback) === 'function') {
             onSuccess = callback;
         } else {
             onSuccess = callback.onSuccess;
             onError = callback.onError;
+            onTimeout = callback.onTimeout;
+        }
+
+        if (CentralDispatch.timeout) {
+            setTimeout(function () {
+                self.timeout();
+            }, CentralDispatch.timeout);
         }
 
         self.success = function (data) { 
-            onSuccess(data); 
-            if (self.element && !executed) {
-                document.body.removeChild(self.element); 
-                self.element = null; 
+            if (!executed) {
+                onSuccess(data); 
+                if (element) {
+                    document.body.removeChild(self.element); 
+                    element = null; 
+                }
             }
             executed = true;
+        };
+
+        self.timeout = function () {
+            if (!executed) {
+                if (onTimeout) {
+                    onTimeout(self);
+                }
+                if (element) {
+                    document.body.removeChild(element);
+                }
+                RequestMap.remove(self);
+                element = null;
+                executed = true;
+            }
         };
 
         self.url = url;
         
         self.element = function () {
-            var element;
             element = document.createElement('script');
             element.src = url;
             element.onerror = function (msg, url, line) { 
-                if (onError) {
-                    onError(msg, url, line);
-                }
-                if (element && !executed) {
-                    document.body.removeChild(element);
-                    RequestMap.remove(self);
-                    element = null;
+                if (!executed) {
+                    if (onError) {
+                        onError(msg, url, line);
+                    }
+                    if (element) {
+                        document.body.removeChild(element);
+                        RequestMap.remove(self);
+                        element = null;
+                    }
                 }
                 executed = true;
             };
@@ -45,7 +69,7 @@ var CentralDispatch = function () {
         }();
 
         self.addToDom = function () {
-            document.body.appendChild(self.element);
+            document.body.appendChild(element);
         };
 
         RequestMap.add(self);

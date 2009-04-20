@@ -2,6 +2,10 @@
          expect, equal, before, include */
 Screw.Unit(function () {
     describe('CentralDispatch', function () {
+        before(function () {
+            CentralDispatch.timeout = null;
+        });
+
         describe('requesting data from a url', function () {
             it('should write a script tag', function () {
                 var url = 'http://test.host/';
@@ -11,7 +15,7 @@ Screw.Unit(function () {
         });
 
         describe('registered to receive data from http://test.host/test.js', function () {
-            var callback, requestedUrl, storedData, element;
+            var callback, requestedUrl, storedData, request, element;
 
             before(function () {
                 storedData = null;
@@ -19,7 +23,8 @@ Screw.Unit(function () {
                     storedData = data;
                 };
                 requestedUrl = 'http://test.host/test.js';
-                element = CentralDispatch.requestData(requestedUrl, callback).element;
+                request = CentralDispatch.requestData(requestedUrl, callback);
+                element = request.element;
             });
 
             it('should callback when receiving data for http://test.host/test.js', function () {
@@ -59,6 +64,16 @@ Screw.Unit(function () {
                 data = {hello: 'bob'};
                 CentralDispatch.receiveData('v1', url, data);
                 expect(storedData).to(equal, data);
+            });
+            
+            it('should cleanup on timeout', function () {
+                request.timeout();
+                expect(document.body.childNodes).to_not(include, element);
+            });
+
+            it('should cleanup on error', function () {
+                element.onerror();
+                expect(document.body.childNodes).to_not(include, element);
             });
         });
 
@@ -105,7 +120,7 @@ Screw.Unit(function () {
         });
 
         describe('registered to receive an error callback', function () {
-            var errorCallback, requestedUrl, storedData, callback, element;
+            var errorCallback, requestedUrl, storedData, callback, element, request;
 
             before(function () {
                 storedData = null;
@@ -116,7 +131,8 @@ Screw.Unit(function () {
                     storedData = 'error';
                 };
                 requestedUrl = 'http://test.host/test.js';
-                element = CentralDispatch.requestData(requestedUrl, { onSuccess: callback, onError: errorCallback }).element;
+                request = CentralDispatch.requestData(requestedUrl, { onSuccess: callback, onError: errorCallback });
+                element = request.element;
             });
 
             it('should call the error callback', function () {
@@ -127,6 +143,12 @@ Screw.Unit(function () {
             it('should prevent the data callback from firing', function () {
                 element.onerror();
                 CentralDispatch.receiveData('v1', requestedUrl, 'pizza');
+                expect(storedData).to(equal, 'error');
+            });
+
+            it('should prevent the timeout from firing', function () {
+                element.onerror();
+                request.timeout();
                 expect(storedData).to(equal, 'error');
             });
 
@@ -143,18 +165,53 @@ Screw.Unit(function () {
         });
 
         describe('registered to receive a timeout callback', function () {
-            var timeoutCallback, url, storedData, successCallback, element;
+            var timeoutCallback, url, storedData, successCallback, errorCallback, request;
 
             before(function () {
                 storedData = null;
                 successCallback = function (data) {
                     storedData = data;
                 };
-                timeoutCallback = function () {
-                    storedData = 'timeout';
+                timeoutCallback = function (data) {
+                    storedData = data;
+                };
+                errorCallback = function () {
+                    storedData = 'error';
                 };
                 url = 'http://test.host/test.js';
-                element = CentralDispatch.requestData(url, { onSuccess: successCallback, onTimeout: timeoutCallback }).element;
+                CentralDispatch.timeout = 10000;
+                Screw.Stub.shouldReceive(window, 'setTimeout');
+                request = CentralDispatch.requestData(url, { onSuccess: successCallback, onTimeout: timeoutCallback, onError: errorCallback });
+            });
+
+            it('should pass request to timeout function', function () {
+                request.timeout();
+                expect(storedData).to(equal, request);
+            });
+
+            it('should garbage collect', function () {
+                var element = request.element;
+                request.timeout();
+                expect(document.body.childNodes).to_not(include, element);
+            });
+
+            it('should prevent the data callback from firing', function () {
+                request.timeout();
+                CentralDispatch.receiveData('v1', url, 'pizza');
+                expect(storedData).to(equal, request);
+            });
+
+            it('should prevent the error callback from firing', function () {
+                var element = request.element;
+                request.timeout();
+                element.onerror();
+                expect(storedData).to(equal, request);
+            });
+
+            it('should not call if callback has run', function () {
+                CentralDispatch.receiveData('v1', url, 'pizza');
+                request.timeout();
+                expect(storedData).to(equal, 'pizza');
             });
         });
     });
