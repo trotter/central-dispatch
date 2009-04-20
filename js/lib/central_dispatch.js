@@ -12,108 +12,108 @@ var CentralDispatch = {
     timeout: 60000 // 60 seconds
 };
 
-CentralDispatch.request = function (spec, private) {
-    var public;
-    public = {};
-    public.url = spec.url;
+CentralDispatch.request = function (spec, my) {
+    var that;
+    that = {};
+    that.url = spec.url;
 
-    private = private || {};
-    private.timeout = null;
+    my = my || {};
+    my.timeout = null;
 
     // Private methods
-    private.setCallbacks = function () {
+    my.setCallbacks = function () {
         if (typeof(spec.callbacks) === 'function') {
-            private.callbacks = { onSuccess: spec.callbacks };
+            my.callbacks = { onSuccess: spec.callbacks };
         } else {
-            private.callbacks = spec.callbacks;
+            my.callbacks = spec.callbacks;
         }
     };
 
-    private.setTimeout = function () {
+    my.setTimeout = function () {
         if (CentralDispatch.timeout) {
             if (window) {
-                private.timeout = window.setTimeout(function () {
-                    public.timeout();
+                my.timeout = window.setTimeout(function () {
+                    that.timeout();
                 }, CentralDispatch.timeout);
             }
         }
     };
 
-    private.setElement = function () {
+    my.setElement = function () {
         var element;
         element = document.createElement('script');
-        element.src = public.url;
-        element.onerror = public.error;
-        public.element = element;
+        element.src = that.url;
+        element.onerror = that.error;
+        that.element = element;
     };
 
-    private.process = function (func) {
-        if (!private.executed) {
-            private.executed = true;
-            private.cleanupElement();
+    my.process = function (func) {
+        if (!my.executed) {
+            my.executed = true;
+            my.cleanupElement();
             func();
         }
     };
 
-    private.cleanupElement = function () {
-        if (public.element) {
-            document.body.removeChild(public.element); 
-            public.element = null; 
+    my.cleanupElement = function () {
+        if (that.element) {
+            document.body.removeChild(that.element); 
+            that.element = null; 
         }
     };
 
-    private.cleanupTimeout = function () {
-        if (private.timeout) {
-            window.clearTimeout(private.timeout);
-            private.timeout = null;
+    my.cleanupTimeout = function () {
+        if (my.timeout) {
+            window.clearTimeout(my.timeout);
+            my.timeout = null;
         }
     };
 
     // Public methods
-    public.success = function (data) { 
-        private.process(function () {
-            private.cleanupTimeout();
-            if (private.callbacks.onSuccess) {
-                private.callbacks.onSuccess(data); 
+    that.success = function (data) { 
+        my.process(function () {
+            my.cleanupTimeout();
+            if (my.callbacks.onSuccess) {
+                my.callbacks.onSuccess(data); 
             }
         });
     };
 
-    public.error = function (msg, url, line) {
-        private.process(function () {
-            CentralDispatch.RequestMap.remove(public);
-            private.cleanupTimeout();
-            if (private.callbacks.onError) {
-                private.callbacks.onError(msg, url, line);
+    that.error = function (msg, url, line) {
+        my.process(function () {
+            CentralDispatch.RequestMap.remove(that);
+            my.cleanupTimeout();
+            if (my.callbacks.onError) {
+                my.callbacks.onError(msg, url, line);
             }
         });
     };
 
-    public.timeout = function () {
-        private.process(function () {
-            CentralDispatch.RequestMap.remove(public);
-            if (private.callbacks.onTimeout) {
-                private.callbacks.onTimeout(public);
+    that.timeout = function () {
+        my.process(function () {
+            CentralDispatch.RequestMap.remove(that);
+            if (my.callbacks.onTimeout) {
+                my.callbacks.onTimeout(that);
             }
         });
     };
 
-    public.addToDom = function () {
-        document.body.appendChild(public.element);
+    that.addToDom = function () {
+        document.body.appendChild(that.element);
     };
 
-    public.isExecuted = function () {
-        return private.executed;
+    that.isExecuted = function () {
+        return my.executed;
     };
 
     // Init
-    private.executed = false;
-    CentralDispatch.RequestMap.add(public);
-    private.setCallbacks();
-    private.setTimeout();
-    private.setElement();
+    my.executed = false;
+    CentralDispatch.RequestMap.add(that);
+    my.setCallbacks();
+    my.setTimeout();
+    my.setElement();
 
-    return public;
+    return that;
 };
 
 CentralDispatch.RequestMap = function () {
