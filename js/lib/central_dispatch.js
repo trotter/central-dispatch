@@ -1,151 +1,154 @@
 var CentralDispatch = function () {
     var klass = {},
         callbacks = {},
-        addCallback, findCallbacks, runCallbacks,
-        makeRequest, RequestMap;
-
-    makeRequest = function (url, callback) {
-        var self = {}, element, executed = false,
-            onSuccess, onError, onTimeout;
-
-        if (typeof(callback) === 'function') {
-            onSuccess = callback;
-        } else {
-            onSuccess = callback.onSuccess;
-            onError = callback.onError;
-            onTimeout = callback.onTimeout;
-        }
-
-        if (CentralDispatch.timeout) {
-            setTimeout(function () {
-                self.timeout();
-            }, CentralDispatch.timeout);
-        }
-
-        self.success = function (data) { 
-            if (!executed) {
-                onSuccess(data); 
-                if (element) {
-                    document.body.removeChild(self.element); 
-                    element = null; 
-                }
-            }
-            executed = true;
-        };
-
-        self.timeout = function () {
-            if (!executed) {
-                if (onTimeout) {
-                    onTimeout(self);
-                }
-                if (element) {
-                    document.body.removeChild(element);
-                }
-                RequestMap.remove(self);
-                element = null;
-                executed = true;
-            }
-        };
-
-        self.url = url;
-        
-        self.element = function () {
-            element = document.createElement('script');
-            element.src = url;
-            element.onerror = function (msg, url, line) { 
-                if (!executed) {
-                    if (onError) {
-                        onError(msg, url, line);
-                    }
-                    if (element) {
-                        document.body.removeChild(element);
-                        RequestMap.remove(self);
-                        element = null;
-                    }
-                }
-                executed = true;
-            };
-            return element;
-        }();
-
-        self.addToDom = function () {
-            document.body.appendChild(element);
-        };
-
-        RequestMap.add(self);
-        return self;
-    };
-
-    RequestMap = function () {
-        var klass = {}, requests = {}, findAllFor;
-
-        findAllFor = function (url) {
-            var regex, fullUrl;
-
-            // Exit with an exact match if possible for speed
-            if (requests[url]) {
-                return requests[url];
-            }
-
-            // TODO: The following is innefficient in the case of many requests
-            regex = new RegExp(url + '$');
-            for (fullUrl in requests) {
-                if (requests.hasOwnProperty(fullUrl)) {
-                    if (regex.test(fullUrl)) {
-                        return requests[fullUrl];
-                    }
-                }
-            }
-            // Incase we don't find anything
-            return [];
-        };
-
-        klass.add = function (request) {
-            requests[request.url] = requests[request.url] || [];
-            requests[request.url].push(request);
-        };
-
-        klass.runAllFor = function (url, data) {
-            var matches, current;
-            matches = findAllFor(url);
-            current = matches.pop();
-            while (current) {
-                // TODO: Should clone data so that functions don't spoil the fun for
-                // others.
-                current.success(data); 
-                current = matches.pop();
-            }
-        };
-
-        klass.remove = function (request) {
-            var matches, i, match;
-            matches = findAllFor(request.url);
-            for (i = 0; i < matches.length; i += 1) {
-                if (matches[i] === request) {
-                    match = i;
-                    break;
-                }
-            }
-
-            if (match !== undefined) {
-                matches.splice(match, 1);
-            }
-        };
-
-        return klass;
-    }();
+        addCallback, findCallbacks, runCallbacks;
 
     klass.requestData = function (url, callback) {
-        var request = makeRequest(url, callback);
+        var request = CentralDispatch.request({url: url, callback: callback});
         request.addToDom();
         return request;
     };
 
     klass.receiveData = function (version, url, data) {
-        RequestMap.runAllFor(url, data);
+        CentralDispatch.RequestMap.runAllFor(url, data);
     };
 
     klass.timeout = 60000; // 60 seconds
 
     return klass;
 }();
+
+CentralDispatch.request = function (spec, private) {
+    var public, url, callback, element, executed = false,
+        onSuccess, onError, onTimeout;
+    url = spec.url;
+    callback = spec.callback;
+
+    public = {};
+    if (typeof(callback) === 'function') {
+        onSuccess = callback;
+    } else {
+        onSuccess = callback.onSuccess;
+        onError = callback.onError;
+        onTimeout = callback.onTimeout;
+    }
+
+    if (CentralDispatch.timeout) {
+        setTimeout(function () {
+            public.timeout();
+        }, CentralDispatch.timeout);
+    }
+
+    public.success = function (data) { 
+        if (!executed) {
+            onSuccess(data); 
+            if (element) {
+                document.body.removeChild(public.element); 
+                element = null; 
+            }
+        }
+        executed = true;
+    };
+
+    public.timeout = function () {
+        if (!executed) {
+            if (onTimeout) {
+                onTimeout(public);
+            }
+            if (element) {
+                document.body.removeChild(element);
+            }
+            CentralDispatch.RequestMap.remove(public);
+            element = null;
+            executed = true;
+        }
+    };
+
+    public.url = url;
+    
+    public.element = function () {
+        element = document.createElement('script');
+        element.src = url;
+        element.onerror = function (msg, url, line) { 
+            if (!executed) {
+                if (onError) {
+                    onError(msg, url, line);
+                }
+                if (element) {
+                    document.body.removeChild(element);
+                    CentralDispatch.RequestMap.remove(public);
+                    element = null;
+                }
+            }
+            executed = true;
+        };
+        return element;
+    }();
+
+    public.addToDom = function () {
+        document.body.appendChild(element);
+    };
+
+    CentralDispatch.RequestMap.add(public);
+    return public;
+};
+
+CentralDispatch.RequestMap = function () {
+    var klass = {}, requests = {}, findAllFor;
+
+    findAllFor = function (url) {
+        var regex, fullUrl;
+
+        // Exit with an exact match if possible for speed
+        if (requests[url]) {
+            return requests[url];
+        }
+
+        // TODO: The following is innefficient in the case of many requests
+        regex = new RegExp(url + '$');
+        for (fullUrl in requests) {
+            if (requests.hasOwnProperty(fullUrl)) {
+                if (regex.test(fullUrl)) {
+                    return requests[fullUrl];
+                }
+            }
+        }
+        // Incase we don't find anything
+        return [];
+    };
+
+    klass.add = function (request) {
+        requests[request.url] = requests[request.url] || [];
+        requests[request.url].push(request);
+    };
+
+    klass.runAllFor = function (url, data) {
+        var matches, current;
+        matches = findAllFor(url);
+        current = matches.pop();
+        while (current) {
+            // TODO: Should clone data so that functions don't spoil the fun for
+            // others.
+            current.success(data); 
+            current = matches.pop();
+        }
+    };
+
+    klass.remove = function (request) {
+        var matches, i, match;
+        matches = findAllFor(request.url);
+        for (i = 0; i < matches.length; i += 1) {
+            if (matches[i] === request) {
+                match = i;
+                break;
+            }
+        }
+
+        if (match !== undefined) {
+            matches.splice(match, 1);
+        }
+    };
+
+    return klass;
+}();
+
