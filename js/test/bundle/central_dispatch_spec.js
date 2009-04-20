@@ -2,9 +2,6 @@
          expect, equal, before, include */
 Screw.Unit(function () {
     describe('CentralDispatch', function () {
-        before(function () {
-        });
-
         describe('requesting data from a url', function () {
             it('should write a script tag', function () {
                 var url = 'http://test.host/';
