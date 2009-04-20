@@ -18,7 +18,8 @@ var CentralDispatch = function () {
 
 CentralDispatch.request = function (spec, private) {
     var public, url;
-    url = spec.url;
+    public = {};
+    public.url = spec.url;
 
     private = private || {};
 
@@ -26,7 +27,7 @@ CentralDispatch.request = function (spec, private) {
         if (typeof(spec.callbacks) === 'function') {
             private.callbacks = { onSuccess: spec.callbacks };
         } else {
-            private.callbacks = spec.callbacks
+            private.callbacks = spec.callbacks;
         }
     };
 
@@ -41,27 +42,24 @@ CentralDispatch.request = function (spec, private) {
     private.setElement = function () {
         var element;
         element = document.createElement('script');
-        element.src = url;
+        element.src = public.url;
         element.onerror = public.error;
         public.element = element;
     };
 
-    public = {};
-    public.url = spec.url;
-
     public.success = function (data) { 
-        if (!public.executed) {
+        if (!private.executed) {
             private.callbacks.onSuccess(data); 
             if (public.element) {
                 document.body.removeChild(public.element); 
                 public.element = null; 
             }
         }
-        public.executed = true;
+        private.executed = true;
     };
 
     public.error = function (msg, url, line) {
-        if (!public.executed) {
+        if (!private.executed) {
             if (private.callbacks.onError) {
                 private.callbacks.onError(msg, url, line);
             }
@@ -71,11 +69,11 @@ CentralDispatch.request = function (spec, private) {
                 public.element = null;
             }
         }
-        public.executed = true;
+        private.executed = true;
     };
 
     public.timeout = function () {
-        if (!public.executed) {
+        if (!private.executed) {
             if (private.callbacks.onTimeout) {
                 private.callbacks.onTimeout(public);
             }
@@ -84,7 +82,7 @@ CentralDispatch.request = function (spec, private) {
             }
             CentralDispatch.RequestMap.remove(public);
             public.element = null;
-            public.executed = true;
+            private.executed = true;
         }
     };
 
@@ -92,8 +90,12 @@ CentralDispatch.request = function (spec, private) {
         document.body.appendChild(public.element);
     };
 
+    public.isExecuted = function () {
+        return private.executed;
+    };
+
     // Init
-    public.executed = false;
+    private.executed = false;
     CentralDispatch.RequestMap.add(public);
     private.setCallbacks();
     private.setTimeout();
