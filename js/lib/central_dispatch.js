@@ -29,6 +29,7 @@ var CentralDispatch = function () {
                 }
                 if (tag && !executed) {
                     document.body.removeChild(tag);
+                    RequestMap.remove(self);
                     tag = null;
                 }
                 executed = true;
@@ -74,13 +75,29 @@ var CentralDispatch = function () {
         };
 
         klass.runAllFor = function (url, data) {
-            var requests = findAllFor(url), current;
-            current = requests.pop();
+            var matches, current;
+            matches = findAllFor(url);
+            current = matches.pop();
             while (current) {
                 // TODO: Should clone data so that functions don't spoil the fun for
                 // others.
                 current.callback(data); 
-                current = requests.pop();
+                current = matches.pop();
+            }
+        };
+
+        klass.remove = function (request) {
+            var matches, i, match;
+            matches = findAllFor(request.url);
+            for (i = 0; i < matches.length; i += 1) {
+                if (matches[i] === request) {
+                    match = i;
+                    break;
+                }
+            }
+
+            if (match !== undefined) {
+                matches.splice(match, 1);
             }
         };
 

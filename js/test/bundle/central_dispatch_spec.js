@@ -124,6 +124,12 @@ Screw.Unit(function () {
                 expect(storedData).to(equal, 'error');
             });
 
+            it('should prevent the data callback from firing', function () {
+                element.onerror();
+                CentralDispatch.receiveData('v1', requestedUrl, 'pizza');
+                expect(storedData).to(equal, 'error');
+            });
+
             it('should garbage collect', function () {
                 element.onerror();
                 expect(document.body.childNodes).to_not(include, element);
