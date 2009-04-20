@@ -1,10 +1,8 @@
 var CentralDispatch = function () {
-    var klass = {},
-        callbacks = {},
-        addCallback, findCallbacks, runCallbacks;
+    var klass = {};
 
-    klass.requestData = function (url, callback) {
-        var request = CentralDispatch.request({url: url, callback: callback});
+    klass.requestData = function (url, callbacks) {
+        var request = CentralDispatch.request({url: url, callbacks: callbacks});
         request.addToDom();
         return request;
     };
@@ -19,20 +17,16 @@ var CentralDispatch = function () {
 }();
 
 CentralDispatch.request = function (spec, private) {
-    var public, init, url, callback, executed = false,
-        onSuccess, onError, onTimeout;
+    var public, url;
     url = spec.url;
-    callback = spec.callback;
 
     private = private || {};
 
     private.setCallbacks = function () {
-        if (typeof(callback) === 'function') {
-            onSuccess = callback;
+        if (typeof(spec.callbacks) === 'function') {
+            private.callbacks = { onSuccess: spec.callbacks };
         } else {
-            onSuccess = callback.onSuccess;
-            onError = callback.onError;
-            onTimeout = callback.onTimeout;
+            private.callbacks = spec.callbacks
         }
     };
 
@@ -56,20 +50,20 @@ CentralDispatch.request = function (spec, private) {
     public.url = spec.url;
 
     public.success = function (data) { 
-        if (!executed) {
-            onSuccess(data); 
+        if (!public.executed) {
+            private.callbacks.onSuccess(data); 
             if (public.element) {
                 document.body.removeChild(public.element); 
                 public.element = null; 
             }
         }
-        executed = true;
+        public.executed = true;
     };
 
     public.error = function (msg, url, line) {
-        if (!executed) {
-            if (onError) {
-                onError(msg, url, line);
+        if (!public.executed) {
+            if (private.callbacks.onError) {
+                private.callbacks.onError(msg, url, line);
             }
             if (public.element) {
                 document.body.removeChild(public.element);
@@ -77,29 +71,29 @@ CentralDispatch.request = function (spec, private) {
                 public.element = null;
             }
         }
-        executed = true;
+        public.executed = true;
     };
 
     public.timeout = function () {
-        if (!executed) {
-            if (onTimeout) {
-                onTimeout(public);
+        if (!public.executed) {
+            if (private.callbacks.onTimeout) {
+                private.callbacks.onTimeout(public);
             }
             if (public.element) {
                 document.body.removeChild(public.element);
             }
             CentralDispatch.RequestMap.remove(public);
             public.element = null;
-            executed = true;
+            public.executed = true;
         }
     };
-
 
     public.addToDom = function () {
         document.body.appendChild(public.element);
     };
 
     // Init
+    public.executed = false;
     CentralDispatch.RequestMap.add(public);
     private.setCallbacks();
     private.setTimeout();
