@@ -18,6 +18,7 @@ CentralDispatch.request = function (spec, private) {
     public.url = spec.url;
 
     private = private || {};
+    private.timeout = null;
 
     // Private methods
     private.setCallbacks = function () {
@@ -31,7 +32,7 @@ CentralDispatch.request = function (spec, private) {
     private.setTimeout = function () {
         if (CentralDispatch.timeout) {
             if (window) {
-                window.setTimeout(function () {
+                private.timeout = window.setTimeout(function () {
                     public.timeout();
                 }, CentralDispatch.timeout);
             }
@@ -48,9 +49,9 @@ CentralDispatch.request = function (spec, private) {
 
     private.process = function (func) {
         if (!private.executed) {
-            func();
-            private.cleanupElement();
             private.executed = true;
+            private.cleanupElement();
+            func();
         }
     };
 
@@ -61,9 +62,17 @@ CentralDispatch.request = function (spec, private) {
         }
     };
 
+    private.cleanupTimeout = function () {
+        if (private.timeout) {
+            window.clearTimeout(private.timeout);
+            private.timeout = null;
+        }
+    };
+
     // Public methods
     public.success = function (data) { 
         private.process(function () {
+            private.cleanupTimeout();
             if (private.callbacks.onSuccess) {
                 private.callbacks.onSuccess(data); 
             }
@@ -72,19 +81,20 @@ CentralDispatch.request = function (spec, private) {
 
     public.error = function (msg, url, line) {
         private.process(function () {
+            CentralDispatch.RequestMap.remove(public);
+            private.cleanupTimeout();
             if (private.callbacks.onError) {
                 private.callbacks.onError(msg, url, line);
             }
-            CentralDispatch.RequestMap.remove(public);
         });
     };
 
     public.timeout = function () {
         private.process(function () {
+            CentralDispatch.RequestMap.remove(public);
             if (private.callbacks.onTimeout) {
                 private.callbacks.onTimeout(public);
             }
-            CentralDispatch.RequestMap.remove(public);
         });
     };
 

@@ -3,7 +3,6 @@
 Screw.Unit(function () {
     describe('CentralDispatch', function () {
         before(function () {
-            CentralDispatch.timeout = null;
         });
 
         describe('requesting data from a url', function () {
@@ -147,6 +146,7 @@ Screw.Unit(function () {
             });
 
             it('should prevent the timeout from firing', function () {
+                Screw.Stub.shouldReceive(window, 'clearTimeout');
                 element.onerror();
                 request.timeout();
                 expect(storedData).to(equal, 'error');
@@ -179,8 +179,6 @@ Screw.Unit(function () {
                     storedData = 'error';
                 };
                 url = 'http://test.host/test.js';
-                CentralDispatch.timeout = 10000;
-                Screw.Stub.shouldReceive(window, 'setTimeout');
                 request = CentralDispatch.requestData(url, { onSuccess: successCallback, onTimeout: timeoutCallback, onError: errorCallback });
             });
 
@@ -209,6 +207,7 @@ Screw.Unit(function () {
             });
 
             it('should not call if callback has run', function () {
+                Screw.Stub.shouldReceive(window, 'clearTimeout');
                 CentralDispatch.receiveData('v1', url, 'pizza');
                 request.timeout();
                 expect(storedData).to(equal, 'pizza');
