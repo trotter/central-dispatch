@@ -1,20 +1,16 @@
-var CentralDispatch = function () {
-    var klass = {};
-
-    klass.requestData = function (url, callbacks) {
+var CentralDispatch = {
+    requestData: function (url, callbacks) {
         var request = CentralDispatch.request({url: url, callbacks: callbacks});
         request.addToDom();
         return request;
-    };
+    },
 
-    klass.receiveData = function (version, url, data) {
+    receiveData: function (version, url, data) {
         CentralDispatch.RequestMap.runAllFor(url, data);
-    };
+    },
 
-    klass.timeout = 60000; // 60 seconds
-
-    return klass;
-}();
+    timeout: 60000 // 60 seconds
+};
 
 CentralDispatch.request = function (spec, private) {
     var public;
@@ -34,9 +30,11 @@ CentralDispatch.request = function (spec, private) {
 
     private.setTimeout = function () {
         if (CentralDispatch.timeout) {
-            setTimeout(function () {
-                public.timeout();
-            }, CentralDispatch.timeout);
+            if (window) {
+                window.setTimeout(function () {
+                    public.timeout();
+                }, CentralDispatch.timeout);
+            }
         }
     };
 
