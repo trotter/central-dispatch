@@ -4,41 +4,48 @@ var CentralDispatch = function () {
         addCallback, findCallbacks, runCallbacks,
         makeRequest, RequestMap;
 
-    makeRequest = function (url, callback, options) {
-        var self = {}, tag, executed = false;
-        options = options || {};
+    makeRequest = function (url, callback) {
+        var self = {}, element, executed = false,
+            onSuccess, onError;
 
-        self.callback = function (data) { 
-            callback(data); 
-            if (self.tag && !executed) {
-                document.body.removeChild(self.tag); 
-                self.tag = null; 
+        if (typeof(callback) === 'function') {
+            onSuccess = callback;
+        } else {
+            onSuccess = callback.onSuccess;
+            onError = callback.onError;
+        }
+
+        self.success = function (data) { 
+            onSuccess(data); 
+            if (self.element && !executed) {
+                document.body.removeChild(self.element); 
+                self.element = null; 
             }
             executed = true;
         };
 
         self.url = url;
         
-        self.tag = function () {
-            var tag;
-            tag = document.createElement('script');
-            tag.src = url;
-            tag.onerror = function () { 
-                if (options.onError) {
-                    options.onError();
+        self.element = function () {
+            var element;
+            element = document.createElement('script');
+            element.src = url;
+            element.onerror = function (msg, url, line) { 
+                if (onError) {
+                    onError(msg, url, line);
                 }
-                if (tag && !executed) {
-                    document.body.removeChild(tag);
+                if (element && !executed) {
+                    document.body.removeChild(element);
                     RequestMap.remove(self);
-                    tag = null;
+                    element = null;
                 }
                 executed = true;
             };
-            return tag;
+            return element;
         }();
 
         self.addToDom = function () {
-            document.body.appendChild(self.tag);
+            document.body.appendChild(self.element);
         };
 
         RequestMap.add(self);
@@ -81,7 +88,7 @@ var CentralDispatch = function () {
             while (current) {
                 // TODO: Should clone data so that functions don't spoil the fun for
                 // others.
-                current.callback(data); 
+                current.success(data); 
                 current = matches.pop();
             }
         };
@@ -104,15 +111,17 @@ var CentralDispatch = function () {
         return klass;
     }();
 
-    klass.requestData = function (url, callback, options) {
-        var request = makeRequest(url, callback, options);
+    klass.requestData = function (url, callback) {
+        var request = makeRequest(url, callback);
         request.addToDom();
-        return request.tag;
+        return request;
     };
 
     klass.receiveData = function (version, url, data) {
         RequestMap.runAllFor(url, data);
     };
+
+    klass.timeout = 60000; // 60 seconds
 
     return klass;
 }();

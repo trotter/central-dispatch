@@ -12,11 +12,11 @@ h3. Parameters
 
 | param | expected type | description |
 | url | String | The url from which you're fetching data |
-| callback | Function | A function that will be called when the data is received |
-| options | Optional Hash | Described below |
+| callback | Function or Hash | A function that will be called when the data is received, or a hash described below |
 
 Options Hash:
 | key | expected type | description |
+| onSuccess | Function | A function to be called when the data is received |
 | onError | Function | A function to be called if there is an error fetching the data |
 
 h3. Example
@@ -27,6 +27,10 @@ var callback = function (data) {
     alert(data);
 };
 CentralDispatch.requestData('http://trottercashion.com/examples/cdData.js', callback)
+
+var errorCallback = function (msg, url, line) {
+    alert("error: " + msg);
+}
 </code>
 </pre>
 

@@ -19,7 +19,7 @@ Screw.Unit(function () {
                     storedData = data;
                 };
                 requestedUrl = 'http://test.host/test.js';
-                element = CentralDispatch.requestData(requestedUrl, callback);
+                element = CentralDispatch.requestData(requestedUrl, callback).element;
             });
 
             it('should callback when receiving data for http://test.host/test.js', function () {
@@ -116,7 +116,7 @@ Screw.Unit(function () {
                     storedData = 'error';
                 };
                 requestedUrl = 'http://test.host/test.js';
-                element = CentralDispatch.requestData(requestedUrl, callback, { onError: errorCallback });
+                element = CentralDispatch.requestData(requestedUrl, { onSuccess: callback, onError: errorCallback }).element;
             });
 
             it('should call the error callback', function () {
@@ -143,8 +143,18 @@ Screw.Unit(function () {
         });
 
         describe('registered to receive a timeout callback', function () {
+            var timeoutCallback, url, storedData, successCallback, element;
 
             before(function () {
+                storedData = null;
+                successCallback = function (data) {
+                    storedData = data;
+                };
+                timeoutCallback = function () {
+                    storedData = 'timeout';
+                };
+                url = 'http://test.host/test.js';
+                element = CentralDispatch.requestData(url, { onSuccess: successCallback, onTimeout: timeoutCallback }).element;
             });
         });
     });
