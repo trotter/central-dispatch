@@ -19,25 +19,40 @@ var CentralDispatch = function () {
 }();
 
 CentralDispatch.request = function (spec, private) {
-    var public, url, callback, element, executed = false,
+    var public, init, url, callback, element, executed = false,
         onSuccess, onError, onTimeout;
     url = spec.url;
     callback = spec.callback;
 
-    public = {};
-    if (typeof(callback) === 'function') {
-        onSuccess = callback;
-    } else {
-        onSuccess = callback.onSuccess;
-        onError = callback.onError;
-        onTimeout = callback.onTimeout;
-    }
+    private = private || {};
 
-    if (CentralDispatch.timeout) {
-        setTimeout(function () {
-            public.timeout();
-        }, CentralDispatch.timeout);
-    }
+    private.setCallbacks = function () {
+        if (typeof(callback) === 'function') {
+            onSuccess = callback;
+        } else {
+            onSuccess = callback.onSuccess;
+            onError = callback.onError;
+            onTimeout = callback.onTimeout;
+        }
+    };
+
+    private.setTimeout = function () {
+        if (CentralDispatch.timeout) {
+            setTimeout(function () {
+                public.timeout();
+            }, CentralDispatch.timeout);
+        }
+    };
+
+    private.setElement = function () {
+        element = document.createElement('script');
+        element.src = url;
+        element.onerror = public.error;
+        public.element = element;
+    };
+
+    public = {};
+    public.url = spec.url;
 
     public.success = function (data) { 
         if (!executed) {
@@ -45,6 +60,20 @@ CentralDispatch.request = function (spec, private) {
             if (element) {
                 document.body.removeChild(public.element); 
                 element = null; 
+            }
+        }
+        executed = true;
+    };
+
+    public.error = function (msg, url, line) {
+        if (!executed) {
+            if (onError) {
+                onError(msg, url, line);
+            }
+            if (element) {
+                document.body.removeChild(element);
+                CentralDispatch.RequestMap.remove(public);
+                element = null;
             }
         }
         executed = true;
@@ -64,32 +93,17 @@ CentralDispatch.request = function (spec, private) {
         }
     };
 
-    public.url = url;
-    
-    public.element = function () {
-        element = document.createElement('script');
-        element.src = url;
-        element.onerror = function (msg, url, line) { 
-            if (!executed) {
-                if (onError) {
-                    onError(msg, url, line);
-                }
-                if (element) {
-                    document.body.removeChild(element);
-                    CentralDispatch.RequestMap.remove(public);
-                    element = null;
-                }
-            }
-            executed = true;
-        };
-        return element;
-    }();
 
     public.addToDom = function () {
         document.body.appendChild(element);
     };
 
+    // Init
     CentralDispatch.RequestMap.add(public);
+    private.setCallbacks();
+    private.setTimeout();
+    private.setElement();
+
     return public;
 };
 
