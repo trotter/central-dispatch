@@ -152,8 +152,12 @@ CentralDispatch.RequestMap = function () {
         while (current) {
             // TODO: Should clone data so that functions don't spoil the fun for
             // others.
-            current.success(data); 
-            current = matches.pop();
+            try {
+                current.success(data); 
+                current = matches.pop();
+            } catch (e) {
+                // Silently ignore errors so that other callbacks will run
+            }
         }
     };
 
