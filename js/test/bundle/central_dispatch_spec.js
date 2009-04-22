@@ -10,6 +10,14 @@ Screw.Unit(function () {
             });
         });
 
+        describe('request data from a central dispatch jsonp url', function () {
+            it('should write a script tag', function () {
+                var url = 'http://test.host/';
+                CentralDispatch.requestData(url, function () {}, { jsonp: 'CentralDispatch' });
+                expect(document.body.lastChild.src).to(equal, url + "?CentralDispatch.receiveData");
+            });
+        });
+
         describe('registered to receive data from http://test.host/test.js', function () {
             var callback, requestedUrl, storedData, request, element;
 

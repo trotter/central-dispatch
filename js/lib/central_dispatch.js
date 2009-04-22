@@ -1,6 +1,6 @@
 var CentralDispatch = {
-    requestData: function (url, callbacks) {
-        var request = CentralDispatch.request({url: url, callbacks: callbacks});
+    requestData: function (url, callbacks, options) {
+        var request = CentralDispatch.request({url: url, callbacks: callbacks, options: options});
         request.addToDom();
         return request;
     },
@@ -19,6 +19,7 @@ CentralDispatch.request = function (spec, my) {
 
     my = my || {};
     my.timeout = null;
+    my.options = spec.options || {};
 
     // Private methods
     my.setCallbacks = function () {
@@ -40,9 +41,13 @@ CentralDispatch.request = function (spec, my) {
     };
 
     my.setElement = function () {
-        var element;
+        var element, url;
         element = document.createElement('script');
-        element.src = that.url;
+        url = that.url;
+        if (my.options.jsonp === "CentralDispatch") {
+            url = url + "?CentralDispatch.receiveData";
+        }
+        element.src = url;
         element.onerror = that.error;
         that.element = element;
     };
