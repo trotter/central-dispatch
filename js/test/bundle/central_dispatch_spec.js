@@ -1,5 +1,5 @@
 /*extern Screw, CentralDispatch, describe, it,
-         expect, equal, before, include */
+         expect, equal, before, include, match */
 Screw.Unit(function () {
     describe('CentralDispatch', function () {
         describe('requesting data from a url', function () {
@@ -216,6 +216,20 @@ Screw.Unit(function () {
                 CentralDispatch.receiveData('v1', url, 'pizza');
                 request.timeout();
                 expect(storedData).to(equal, 'pizza');
+            });
+        });
+
+        describe('registered to receive data and skip caching', function () {
+            var callback, url, request;
+
+            before(function () {
+                callback = function () {};
+                url = 'http://test.host/test.js';
+                request = CentralDispatch.requestData(url, callback, { skipCache: true });
+            });
+
+            it('should add cache skipping to query string', function () {
+                expect(request.requestedUrl).to(match, new RegExp(url + "\\?nocache=[0-9]+"));
             });
         });
     });

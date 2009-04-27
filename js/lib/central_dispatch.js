@@ -16,6 +16,7 @@ CentralDispatch.request = function (spec, my) {
     var that;
     that = {};
     that.url = spec.url;
+    that.requestedUrl = null;
 
     my = my || {};
     my.timeout = null;
@@ -26,7 +27,7 @@ CentralDispatch.request = function (spec, my) {
         if (typeof(spec.callbacks) === 'function') {
             my.callbacks = { onSuccess: spec.callbacks };
         } else {
-            my.callbacks = spec.callbacks;
+            my.callbacks = spec.callbacks || {};
         }
     };
 
@@ -42,14 +43,35 @@ CentralDispatch.request = function (spec, my) {
 
     my.setElement = function () {
         var element, url;
+        url = my.setRequestedUrl();
         element = document.createElement('script');
         url = that.url;
         if (my.options.jsonp === "CentralDispatch") {
             url = url + "?CentralDispatch.receiveData";
         }
-        element.src = url;
+        element.src = that.requestedUrl;
         element.onerror = that.error;
         that.element = element;
+    };
+
+    my.setRequestedUrl = function () {
+        var url, date;
+        // TODO: Make the url using a library
+        url = that.url;
+        if (my.options.jsonp === "CentralDispatch" || my.options.skipCache) {
+            url = url + "?";
+        }
+        if (my.options.jsonp === "CentralDispatch") {
+            url = url + "CentralDispatch.receiveData";
+            if (my.options.skipCache) {
+                url = url + "&";
+            }
+        }
+        if (my.options.skipCache) {
+            date = new Date();
+            url = url + "nocache=" + date.valueOf();
+        }
+        that.requestedUrl = url;
     };
 
     my.process = function (func) {
