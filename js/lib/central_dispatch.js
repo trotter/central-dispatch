@@ -42,13 +42,8 @@ CentralDispatch.request = function (spec, my) {
     };
 
     my.setElement = function () {
-        var element, url;
-        url = my.setRequestedUrl();
+        var element;
         element = document.createElement('script');
-        url = that.url;
-        if (my.options.jsonp === "CentralDispatch") {
-            url = url + "?CentralDispatch.receiveData";
-        }
         element.src = that.requestedUrl;
         element.onerror = that.error;
         that.element = element;
@@ -135,10 +130,11 @@ CentralDispatch.request = function (spec, my) {
 
     // Init
     my.executed = false;
-    CentralDispatch.RequestMap.add(that);
+    my.setRequestedUrl();
     my.setCallbacks();
     my.setTimeout();
     my.setElement();
+    CentralDispatch.RequestMap.add(that);
 
     return that;
 };
