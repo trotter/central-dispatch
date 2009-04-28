@@ -14,7 +14,7 @@ Screw.Unit(function () {
             it('should write a script tag', function () {
                 var url = 'http://test.host/';
                 CentralDispatch.requestData(url, function () {}, { jsonp: 'CentralDispatch' });
-                expect(document.body.lastChild.src).to(equal, url + "?CentralDispatch.receiveData");
+                expect(document.body.lastChild.src).to(equal, url + "?callback=CentralDispatch.receiveData");
             });
         });
 

@@ -57,7 +57,7 @@ CentralDispatch.request = function (spec, my) {
             url = url + "?";
         }
         if (my.options.jsonp === "CentralDispatch") {
-            url = url + "CentralDispatch.receiveData";
+            url = url + "callback=CentralDispatch.receiveData";
             if (my.options.skipCache) {
                 url = url + "&";
             }
