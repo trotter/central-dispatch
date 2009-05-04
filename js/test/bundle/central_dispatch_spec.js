@@ -232,5 +232,28 @@ Screw.Unit(function () {
                 expect(request.requestedUrl).to(match, new RegExp(url + "\\?nocache=[0-9]+"));
             });
         });
+
+        describe('registered to receive data from url with userData', function () {
+            var callback, url, storedData, userData, request, element;
+
+            before(function () {
+                storedData = null;
+                callback = function (data, uData) {
+                    storedData = uData;
+                };
+                url = 'http://test.host/test.js';
+                userData = 'somethingCrazy';
+
+                request = CentralDispatch.requestData(url, { onSuccess: callback}, { userData: userData });
+                element = request.element;
+            });
+
+            it('should pass the userData to the callback', function () {
+                var data = {hello: 'bob'};
+                CentralDispatch.receiveData('v1', url, data);
+                expect(storedData).to(equal, userData);
+            });
+        });
+
     });
 });

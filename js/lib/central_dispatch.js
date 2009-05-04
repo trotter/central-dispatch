@@ -96,7 +96,7 @@ CentralDispatch.request = function (spec, my) {
         my.process(function () {
             my.cleanupTimeout();
             if (my.callbacks.onSuccess) {
-                my.callbacks.onSuccess(data); 
+                my.callbacks.onSuccess(data, my.options.userData);
             }
         });
     };
@@ -106,7 +106,7 @@ CentralDispatch.request = function (spec, my) {
             CentralDispatch.RequestMap.remove(that);
             if (my.callbacks.onError) {
                 my.cleanupTimeout();
-                my.callbacks.onError(msg, url, line);
+                my.callbacks.onError(msg, url, line, my.options.userData);
             }
         });
     };
@@ -115,7 +115,7 @@ CentralDispatch.request = function (spec, my) {
         my.process(function () {
             CentralDispatch.RequestMap.remove(that);
             if (my.callbacks.onTimeout) {
-                my.callbacks.onTimeout(that);
+                my.callbacks.onTimeout(that, my.options.userData);
             }
         });
     };
